@@ -1,0 +1,45 @@
+# Reading Survival Data
+
+df1<-read.csv("F:\\PHD (1)\\dataset\\TCGA_myth\\survival.csv", head(T))
+View(df1)
+ # Reading DNA Methylation dataset after filteration
+df2<-read.csv("F:\\PHD (1)\\dataset\\TCGA_myth\\TCGA-GBM.methylation27_del_30.csv" , head(T))
+trans_data <- t(df2)
+View(trans_data)
+
+write.csv(trans_data,"F:\\PHD (1)\\dataset\\TCGA_myth\\TCGA-GBM.methylation27_trans_new_30.csv")
+dfnew2<-read.csv("F:\\PHD (1)\\dataset\\TCGA_myth\\TCGA-GBM.methylation27_trans_new_30.csv", sep=",", header = TRUE, skip = 1)
+View(dfnew2)
+
+#data Integration
+r <- merge(df1,dfnew2,by="sample")
+View(r)
+
+summary(r)
+attach(r)
+library(survival)
+install.packages("survminer")
+library(survminer)
+list_new<-colnames(r)[4:100]
+list_new
+x1<-NULL
+x2<-NULL
+for (i in 1:length(list_new)){
+  #print(list_new[i])
+  res.cox <- coxph(Surv(OS.time, OS) ~ get(list_new[i]), data=r)
+ # print(summary(res.cox))
+  res.cox.sum <- data.frame(summary(res.cox)$coefficients)
+  #print(res.cox.sum[,5])
+  if(res.cox.sum[,5]<=0.01){
+ # print(list_new[i])
+ # print(res.cox.sum[,5])
+   x1<-c(x1,list_new[i])
+   x2<-c(x2,res.cox.sum[,5])
+   }
+}
+x1_name <- "Gene"
+x2_name <- "P-value"   
+df <- data.frame(x1,x2)
+names(df) <- c(x1_name,x2_name)
+print(df)
+write.csv(df,"F:\\PHD (1)\\dataset\\TCGA_myth\\TCGA-GBM.methylation27_final1_new_30_pvalu0.05_subset_final.csv", row.names = FALSE)

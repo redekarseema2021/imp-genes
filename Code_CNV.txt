@@ -1,0 +1,141 @@
+df1<-read.csv("F:\\PHD (1)\\dataset\\TCGA_cnv\\survival.csv", head(T))
+View(df1)
+typeof(df1)
+df2<-read.csv("F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv1.csv" , head(T))
+View(df2)
+class(df2)
+typeof(df2)
+
+# r <- merge(df1,df2,by="sample")
+# View(r)
+# 
+# data<-r[ , colSums(is.na(r)) == 0]
+ #write.csv(r,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_merged.csv")
+# View(data)
+
+# t<- na.omit(r)
+# write.csv(t,"D:\\PHD\\TCGA-GBM.methylation27_final.csv")
+
+
+
+
+#datanew<-read.csv("D:\\PHD\\Survival Analysis\\Coxfit\\DF1.csv",sep=",")
+
+summary(d)
+attach(d)
+library(survival)
+install.packages("survminer")
+library(survminer)
+# e<-subset(r,Chrom==1)
+# length(d)
+typeof(df2)
+ i<-subset(df2,Chrom==1)
+View(i)
+class(i)
+ library("plyr")
+ # v = i['Start']
+t=count(i, 'Start')
+View(t)
+names(t) <- c("starting","freqency")
+class(t)
+order(t$freqency)
+t[order(t$freqency,decreasing = TRUE),]
+order
+p=1
+while (p<=22)  
+{ 
+   d<-subset(df2,df2$Chrom==p)
+   print(d)
+   t=count(d, 'Start')
+   names(t) <- c("Start","freqency")
+   cnv1<-t[order(t$freqency,decreasing = TRUE),]
+   View(cnv1)
+   write.csv(cnv1,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_new1.csv",append = T)
+   p = p + 1
+}
+
+p=7
+while (p<=22)  
+{ 
+   d<-subset(df2,df2$Chrom==p)
+   #print(d)
+   t=count(d, 'Start')
+   names(t) <- c("Start","freqency")
+   cnv1<-t[order(t$freqency,decreasing = TRUE),]
+   #View(cnv1)
+   head_cnv1<-head(cnv1,15)
+   
+   print(head_cnv1)
+   #dat3 <- d[d$Start %in% head_cnv1$Start, ]
+ # print(dat3)
+   #dat2 <- data_qual[data_qual$ID %in% dat$ID, ]
+   #write.table(dat3,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA_new.csv",append = T,col.names = F)
+   #write.table(dat3,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_new_final.csv",append = T, col.names = F)
+   #write.csv(dat3,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_new1_all_chrome_new1.csv",append = T)
+   p = p + 1
+}
+
+
+# data_new<-read.table("F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA_new.csv", head(T))
+# View(data_new)
+# write.csv(data_new,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA_new1.csv",append = T)
+# 
+# data_new1<-read.csv("F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA_new1.csv", head(T))
+# View(data_new1)
+data_new_final<-read.table("F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_new_final.csv", head(T))
+View(data_new_final)
+write.csv(data_new_final,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_new_final1.csv",append = T)
+
+data_new_final1<-read.csv("F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_new_final1.csv", head(T))
+View(data_new_final1)
+
+ r <- merge(df1,data_new_final1,by="sample")
+ View(r)
+ write.csv(r,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_merged_final.csv")
+
+ cnv_new<-read.csv("F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_merged_final_modified_new.csv", head(T)) 
+ View(cnv_new)
+ summary(cnv_new)
+ attach(cnv_new)
+ library(survival)
+ install.packages("survminer")
+ library(survminer)
+ p=1
+ x1<-NULL
+ x2<-NULL
+ x3<-NULL
+ while (p<=22)
+ { 
+  #print(p)
+    d=subset(cnv_new,cnv_new$Chrom==p)
+   print(d)
+    #print(d$Start)
+    #typeof(d)
+    q=1
+    while(q<=15)
+    {  
+     #print(q)  
+    da=subset(d,d$Start==q)
+   print(da)
+       res.cox <- coxph(Surv(OS.time, OS) ~ da$value, data=da)
+       print(summary(res.cox))
+       res.cox.sum <- data.frame(summary(res.cox)$coefficients)
+       print(res.cox.sum[,5])
+       if(res.cox.sum[,5]<=0.05 && is.nan(res.cox.sum[,5])==FALSE && is.na(res.cox.sum[,5])==FALSE){
+         x1<-c(x1,p)
+         x2<-c(x2,q)
+         x3<-c(x3,res.cox.sum[,5])
+        }
+    q=q+1
+    }
+ p=p+1
+ } 
+ 
+
+x1_name <- "Chrom"
+x2_name <- "Start"  
+x3_name<- "Value"
+df <- data.frame(x1,x2,x3)
+names(df) <- c(x1_name,x2_name,x3_name)
+print(df)
+write.csv(df,"F:\\PHD (1)\\dataset\\TCGA_cnv\\TCGA-GBM.cnv_signi_value.csv", row.names = FALSE)
